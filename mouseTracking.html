@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+	#test {
+		position: absolute;
+		top: 10px;
+		left: 500px;
+		border: 5px green;
+		border-style: ridge;
+		padding: 5px;
+	}
+	#pos{
+		position: absolute;
+		top: 60px;
+		left: 500px;
+		border: 5px red;
+		border-style: ridge;
+		padding: 5px;
+	}
+</style>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script>
+$(document).ready(function() {
+
+	function timeStamp(time, xCoord, yCoord){
+		this.currentTime = time;
+		this.xCoord = xCoord;
+		this.yCoord = yCoord;
+	}
+
+	var posArray = [];
+	var myJSONString;
+	var xPos, yPos;
+
+
+	function getMousePosition(timeoutMilliSeconds) {
+    // "one" attaches the handler to the event and removes it after it has executed once 
+    $(document).one("mousemove", function (event) {
+        window.mouseXPos = event.pageX;
+        window.mouseYPos = event.pageY;
+        xPos = window.mouseXPos;
+        yPos = window.mouseYPos;
+
+        //Drawing dots live
+        
+		var x = window.mouseXPos;
+		var y = window.mouseYPos;
+		var size = '3px';
+		var color = '#FF0000';
+		$("body").append(
+            $('<div></div>')
+                .css('position', 'absolute')
+                .css('top', y + 'px')
+                .css('left', x + 'px')
+                .css('width', size)
+                .css('height', size)
+                .css('background-color', color)
+        );        
+ 
+
+        //update location
+        var d = new Date();
+		var t = d.toLocaleTimeString();
+		var x = new timeStamp(t, window.mouseXPos, window.mouseYPos);
+		posArray.push(x);
+
+        // set a timeout so the handler will be attached again after a little while
+        setTimeout(function() { getMousePosition(timeoutMilliSeconds) }, timeoutMilliSeconds);
+    	});
+	}
+
+	// start storing the mouse position every 100 milliseconds
+	getMousePosition(100);
+
+	//s = setInterval(storeMousePosition(), 100);
+
+		/*function storeMousePosition() {
+		var d = new Date();
+		var t = d.toLocaleTimeString();
+		var x = new timeStamp(t, window.mouseXPos, window.mouseYPos);
+		posArray.push(x);
+	}*/
+	
+
+	function stopRecording() {
+		var out = "<table border='1'> ";
+		for(var i = 0; i < posArray.length; i++){	
+			var a = posArray[i];
+
+			//How to take array of timeStamps and convert it into JSON-readable text?
+
+
+			out += "<tr><td>" + 
+			a.currentTime + "</td><td>" + 
+			a.xCoord + "</td><td>" + 
+			a.yCoord + "</td></tr>";	
+		}
+		out += "</table>";
+		document.getElementById("table").innerHTML = out;
+
+		//turning array of timeStamps into JSON string
+		myJSONString = JSON.stringify(posArray);
+	}
+
+	function dotMap() {
+		for(var i = 0; i < posArray.length; i++){
+				var x = posArray[i].xCoord;
+				var y = posArray[i].yCoord;
+				var size = '3px';
+				var color = '#FF0000';
+			   $("body").append(
+            	$('<div></div>')
+                .css('position', 'absolute')
+                .css('top', y + 'px')
+                .css('left', x + 'px')
+                .css('width', size)
+                .css('height', size)
+                .css('background-color', color)
+                );
+		}
+	}
+
+	$("#send").click(function(){
+		var exString = document.getElementById("header").innerHTML;
+		var URL = prompt("Please enter a url to send JSON data", "http://posttestserver.com/post.php");
+		if(URL != null){
+			$.post(URL, myJSONString, function(data, status){
+				alert("data: " + data + "\nstatus: " + status);
+			});
+
+			/*$.ajax({
+			type: "POST",
+			url: URL,
+		    datatype : "json",
+		    contentType: "application/json; charset=utf-8",
+		    data : myJSONString,
+		    success : function(result) {
+		        alert(result.success); // result is an object which is created from the returned JSON
+		    	}
+			});*/
+		}
+		
+	});
+
+
+
+
+
+	document.getElementById("stop").addEventListener("click", stopRecording);
+
+	document.getElementById("map").addEventListener("click", dotMap);
+
+
+	$('#display').click( function () {
+		document.getElementById("text").innerHTML = myJSONString;
+
+
+	});
+
+
+	//testing elementFromPoint() method
+/*	$("#header").click(function(){
+		console.log("click");
+		var el = document.elementFromPoint(xPos, yPos);
+		var text = $(el.firstChild.nodeValue);
+		console.log(text);
+	})*/
+
+
+
+
+
+
+});
+
+
+</script>
+
+</head>
+<body>
+
+	<h2 id="header">Mouse Locations</h2>
+
+	<button id="stop">Update Positions</button>
+
+	<button id="display">Display JSON</button>
+
+	<button id="send">Send Data to URL</button>
+
+	<button id="map">Show dot map</button>
+
+
+
+	<div id="table"></div>
+
+	<div id="text"></div>
+
+	<p id="test">Try Me</p>
+	<p id="pos"> </p>
+	<p id=""
+
+
+
+
+</body>
